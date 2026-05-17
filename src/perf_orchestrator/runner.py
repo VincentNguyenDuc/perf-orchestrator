@@ -6,19 +6,18 @@ from .perf import PerfStat
 from .result import WorkerResult
 from .stats import percentile
 
-WorkerFn = Callable[[str, int, int, int, WorkerResult], Coroutine[Any, Any, None]]
+WorkerFn = Callable[[int, int, WorkerResult], Coroutine[Any, Any, None]]
 
 
 async def _gather(args: Any, worker_fn: WorkerFn, results: list[WorkerResult]) -> float:
+    n_workers = args.workers
     tasks = [
         asyncio.create_task(worker_fn(
-            args.host,
-            args.port,
-            args.requests // args.connections,
-            args.warmup // args.connections,
+            args.requests // n_workers,
+            args.warmup // n_workers,
             results[i],
         ))
-        for i in range(args.connections)
+        for i in range(n_workers)
     ]
     t_start = time.perf_counter()
     await asyncio.gather(*tasks)
@@ -31,7 +30,8 @@ def run(args: Any, worker_fn: WorkerFn) -> dict:
         perf = PerfStat(args.perf_pid)
         perf.start()
 
-    results = [WorkerResult() for _ in range(args.connections)]
+    n_workers = args.workers
+    results = [WorkerResult() for _ in range(n_workers)]
     elapsed = asyncio.run(_gather(args, worker_fn, results))
 
     perf_data = perf.stop() if perf else None
@@ -50,7 +50,7 @@ def run(args: Any, worker_fn: WorkerFn) -> dict:
 
     result: dict = {
         "label": getattr(args, "label", ""),
-        "connections": args.connections,
+        "workers": n_workers,
         "requests": args.requests,
         "duration_s": round(elapsed, 3),
         "total_ops": total_ops,

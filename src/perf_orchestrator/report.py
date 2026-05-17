@@ -5,7 +5,7 @@ def print_result(r: dict) -> None:
         print(f"{'='*60}")
 
     lat = r["latency_us"]
-    print(f"connections : {r['connections']}")
+    print(f"workers     : {r['workers']}")
     print(f"requests    : {r['total_ops']:,}  (errors: {r['errors']})")
     if r.get("op_counts"):
         mix = "  ".join(f"{op}={cnt:,}" for op, cnt in r["op_counts"].items())
