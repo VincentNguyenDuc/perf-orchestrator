@@ -1,0 +1,12 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "perf-orchestrator"
+version = "0.1.0"
+description = "Reusable async benchmark library with Linux perf integration"
+requires-python = ">=3.11"
+
+[tool.setuptools.packages.find]
+where = ["src"]
