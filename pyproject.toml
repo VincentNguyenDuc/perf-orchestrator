@@ -8,5 +8,18 @@ version = "0.1.0"
 description = "Reusable async benchmark library with Linux perf integration"
 requires-python = ">=3.11"
 
+[project.optional-dependencies]
+dev = ["black", "ruff"]
+
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.black]
+line-length = 88
+target-version = ["py311"]
+
+[tool.ruff]
+line-length = 88
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]

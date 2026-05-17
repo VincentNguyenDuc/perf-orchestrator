@@ -4,20 +4,20 @@ import subprocess
 import sys
 from pathlib import Path
 
-_PERF_EVENTS = ",".join([
-    "cache-references",
-    "cache-misses",
-    "instructions",
-    "cycles",
-    "branch-misses",
-    "branch-instructions",
-    "L1-dcache-load-misses",
-    "dTLB-load-misses",
-])
-
-_STAT_LINE_RE = re.compile(
-    r"^\s+([\d,]+)\s+([a-zA-Z0-9_\-]+)(?::[a-zA-Z]+)?"
+_PERF_EVENTS = ",".join(
+    [
+        "cache-references",
+        "cache-misses",
+        "instructions",
+        "cycles",
+        "branch-misses",
+        "branch-instructions",
+        "L1-dcache-load-misses",
+        "dTLB-load-misses",
+    ]
 )
+
+_STAT_LINE_RE = re.compile(r"^\s+([\d,]+)\s+([a-zA-Z0-9_\-]+)(?::[a-zA-Z]+)?")
 
 
 class PerfStat:
@@ -39,7 +39,9 @@ class PerfStat:
                 stderr=subprocess.PIPE,
             )
         except FileNotFoundError:
-            print("warning: perf not found — skipping hardware counters", file=sys.stderr)
+            print(
+                "warning: perf not found — skipping hardware counters", file=sys.stderr
+            )
 
     def stop(self) -> dict:
         if self._proc is None:
@@ -83,12 +85,18 @@ class PerfRecord:
         try:
             self._proc = subprocess.Popen(
                 [
-                    "perf", "record",
-                    "-p", str(self._pid),
-                    "-e", self._event,
-                    "--call-graph", self._call_graph,
-                    "-F", str(self._freq),
-                    "-o", str(self._output),
+                    "perf",
+                    "record",
+                    "-p",
+                    str(self._pid),
+                    "-e",
+                    self._event,
+                    "--call-graph",
+                    self._call_graph,
+                    "-F",
+                    str(self._freq),
+                    "-o",
+                    str(self._output),
                 ],
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.PIPE,
@@ -116,7 +124,16 @@ class PerfRecord:
         if not self._output.exists() or self._output.stat().st_size == 0:
             return "(perf.data missing or empty — perf record may have failed)"
         r = subprocess.run(
-            ["perf", "report", "-i", str(self._output), "--stdio", "--no-children", "-g", "none"],
+            [
+                "perf",
+                "report",
+                "-i",
+                str(self._output),
+                "--stdio",
+                "--no-children",
+                "-g",
+                "none",
+            ],
             capture_output=True,
             text=True,
         )
@@ -132,11 +149,20 @@ class PerfRecord:
         collapse_script and render_script are paths to the FlameGraph perl scripts.
         """
         if not (collapse_script.is_file() and render_script.is_file()):
-            print("warning: FlameGraph scripts not found, skipping flamegraph", file=sys.stderr)
+            print(
+                "warning: FlameGraph scripts not found, skipping flamegraph",
+                file=sys.stderr,
+            )
             return None
-        script  = subprocess.run(["perf", "script", "-i", str(self._output)], capture_output=True)
-        folded  = subprocess.run(["perl", str(collapse_script)], input=script.stdout, capture_output=True)
-        rendered = subprocess.run(["perl", str(render_script)],  input=folded.stdout, capture_output=True)
+        script = subprocess.run(
+            ["perf", "script", "-i", str(self._output)], capture_output=True
+        )
+        folded = subprocess.run(
+            ["perl", str(collapse_script)], input=script.stdout, capture_output=True
+        )
+        rendered = subprocess.run(
+            ["perl", str(render_script)], input=folded.stdout, capture_output=True
+        )
         return rendered.stdout if rendered.returncode == 0 and rendered.stdout else None
 
 
@@ -157,10 +183,10 @@ def _parse_perf_stat(output: str) -> dict:
 
     cache_refs = counters.get("cache-references", 0)
     cache_miss = counters.get("cache-misses", 0)
-    instrs     = counters.get("instructions", 0)
-    cycles     = counters.get("cycles", 0)
-    br_miss    = counters.get("branch-misses", 0)
-    br_total   = counters.get("branch-instructions", 0)
+    instrs = counters.get("instructions", 0)
+    cycles = counters.get("cycles", 0)
+    br_miss = counters.get("branch-misses", 0)
+    br_total = counters.get("branch-instructions", 0)
 
     derived: dict[str, float] = {}
     if cache_refs > 0:

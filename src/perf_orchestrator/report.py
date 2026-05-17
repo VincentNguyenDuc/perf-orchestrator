@@ -4,18 +4,18 @@ def print_result(r: dict) -> None:
         print(f"  {r['label']}")
         print(f"{'='*60}")
 
-    lat = r["latency_us"]
+    t = r["timing_us"]
     print(f"workers     : {r['workers']}")
-    print(f"requests    : {r['total_ops']:,}  (errors: {r['errors']})")
-    if r.get("op_counts"):
-        mix = "  ".join(f"{op}={cnt:,}" for op, cnt in r["op_counts"].items())
-        print(f"op mix      : {mix}")
+    print(f"total       : {r['total']:,}  (errors: {r['errors']})")
+    if r.get("counts"):
+        mix = "  ".join(f"{label}={cnt:,}" for label, cnt in r["counts"].items())
+        print(f"counts      : {mix}")
     print(f"duration    : {r['duration_s']} s")
-    print(f"throughput  : {r['throughput_ops_per_s']:,} ops/sec")
+    print(f"throughput  : {r['throughput_per_s']:,} /sec")
     print(
-        f"latency us  : min={lat['min']}  p50={lat['p50']}  "
-        f"p95={lat['p95']}  p99={lat['p99']}  "
-        f"p999={lat['p999']}  max={lat['max']}"
+        f"timing us   : min={t['min']}  p50={t['p50']}  "
+        f"p95={t['p95']}  p99={t['p99']}  "
+        f"p999={t['p999']}  max={t['max']}"
     )
     if "perf" in r:
         _print_perf(r["perf"])
@@ -33,14 +33,14 @@ def _print_perf(p: dict) -> None:
         return
 
     rows = [
-        ("cache-references",      "cache refs"),
-        ("cache-misses",          "cache misses"),
+        ("cache-references", "cache refs"),
+        ("cache-misses", "cache misses"),
         ("L1-dcache-load-misses", "L1d load misses"),
-        ("dTLB-load-misses",      "dTLB load misses"),
-        ("instructions",          "instructions"),
-        ("cycles",                "cycles"),
-        ("branch-instructions",   "branches"),
-        ("branch-misses",         "branch misses"),
+        ("dTLB-load-misses", "dTLB load misses"),
+        ("instructions", "instructions"),
+        ("cycles", "cycles"),
+        ("branch-instructions", "branches"),
+        ("branch-misses", "branch misses"),
     ]
     for key, label in rows:
         val = c.get(key)
