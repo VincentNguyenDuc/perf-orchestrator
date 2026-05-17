@@ -1,5 +1,0 @@
-Metadata-Version: 2.4
-Name: perf-orchestrator
-Version: 0.1.0
-Summary: Reusable async benchmark library with Linux perf integration
-Requires-Python: >=3.11
