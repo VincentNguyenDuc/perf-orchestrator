@@ -57,12 +57,26 @@ class Process:
         self._proc = subprocess.Popen(
             self._cmd,
             stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
+            stderr=subprocess.PIPE,
         )
         logger.debug("'%s' spawned with pid %d", self.name, self._proc.pid)
         if self._ready:
             logger.debug("waiting for '%s' to become ready", self.name)
-            self._ready()
+            try:
+                self._ready()
+            except Exception as exc:
+                # If the process already exited we can safely read its stderr.
+                if self._proc.poll() is not None:
+                    stderr = (
+                        self._proc.stderr.read().decode(errors="replace").strip()
+                        if self._proc.stderr
+                        else ""
+                    )
+                    raise RuntimeError(
+                        f"'{self.name}' exited with code {self._proc.returncode}"
+                        + (f": {stderr}")
+                    ) from exc
+                raise
             logger.debug("'%s' is ready", self.name)
         for cap in self._perf:
             cap.start(self._proc.pid)
@@ -91,6 +105,8 @@ class Process:
                 self._proc.wait()
         exit_code = self._proc.returncode if self._proc else "n/a"
         logger.debug("'%s' stopped (exit code %s)", self.name, exit_code)
+        if self._proc and self._proc.stderr:
+            self._proc.stderr.close()
 
     def report(self) -> dict:
         """Return {capability.name: capability.report()} for all perf capabilities."""
