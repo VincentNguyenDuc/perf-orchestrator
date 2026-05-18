@@ -1,19 +1,12 @@
 # perf-orchestrator
 
-General-purpose benchmark orchestrator with Linux `perf` integration.
+Process lifecycle manager with Linux `perf` attachment.
 
-Designed around two independent concerns:
-
-1. **perf attachment** — attach `perf` capabilities to any running process by PID, 
-   regardless of what that process is or how it was started.
-
-2. **Load generation** — run concurrent async workers against whatever those 
-   processes expose, collect timing samples, and produce a structured report.
-
-These two concerns compose: you can profile one process, many interacting
-processes, or none at all. The library does not assume a specific workload shape
-(HTTP, TCP, file I/O, IPC) — all protocol and connection details live in the
-caller's worker closure.
+Manages subprocess start/stop and attaches `perf` capabilities (`perf stat`,
+`perf record`, etc.) to the process for the duration of its lifetime. Each
+capability is configured independently and started/stopped with the process.
+Multiple processes can be managed together as a `ProcessGroup`, started in
+order and stopped in reverse.
 
 ## Install
 
@@ -32,6 +25,3 @@ make format         # black src/
 make format-check   # black --check src/ (CI)
 make lint           # ruff check src/
 ```
-
-Requires the parent repo's `.venv` (`make init` from the kvc root).
-Tool config lives in `pyproject.toml` under `[tool.black]` and `[tool.ruff]`.
