@@ -54,6 +54,13 @@ class PerfStat:
             _, stderr = self._proc.communicate()
         return _parse_perf_stat(stderr.decode(errors="replace"))
 
+    def __enter__(self) -> "PerfStat":
+        self.start()
+        return self
+
+    def __exit__(self, *_) -> None:
+        self.data: dict = self.stop()
+
 
 class PerfRecord:
     """Records call stacks for a PID via `perf record`.
@@ -117,7 +124,18 @@ class PerfRecord:
         except subprocess.TimeoutExpired:
             self._proc.kill()
             self._proc.wait()
+
+        if self._proc.stderr is None:
+            return ""
+
         return self._proc.stderr.read().decode(errors="replace").strip()
+
+    def __enter__(self) -> "PerfRecord":
+        self.start()
+        return self
+
+    def __exit__(self, *_) -> None:
+        self.stderr: str = self.stop()
 
     def report(self) -> str:
         """Return a hot-path text report from the recorded perf.data."""
