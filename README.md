@@ -15,8 +15,7 @@ pip install -e .          # basic install
 pip install -e ".[dev]"   # include black + ruff
 ```
 
-Requires Python 3.11+. Linux `perf` is optional — the library degrades gracefully
-if it is unavailable or lacks `CAP_PERFMON`.
+Requires Python 3.11+ and Linux `perf`
 
 ## Development
 
