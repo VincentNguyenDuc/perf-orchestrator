@@ -1,14 +1,26 @@
 SRC := src/
 
-.PHONY: format format-check lint
+.PHONY: sync format format-check lint test test-unit test-integration
 
-VENV := ../../.venv/bin
+UV := uv
+
+sync:
+	$(UV) sync --extra dev
 
 format:
-	$(VENV)/black $(SRC)
+	$(UV) run ruff format $(SRC)
 
 format-check:
-	$(VENV)/black --check $(SRC)
+	$(UV) run ruff format --check $(SRC)
 
 lint:
-	$(VENV)/ruff check $(SRC)
+	$(UV) run ruff check $(SRC)
+
+test:
+	$(UV) run pytest
+
+test-unit:
+	$(UV) run pytest tests/unit/
+
+test-integration:
+	$(UV) run pytest tests/integration/

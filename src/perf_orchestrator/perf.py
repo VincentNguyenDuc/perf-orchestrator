@@ -28,18 +28,17 @@ class Perf(ABC):
     def report(self) -> dict: ...
 
 
-_PERF_EVENTS = ",".join(
-    [
-        "cache-references",
-        "cache-misses",
-        "instructions",
-        "cycles",
-        "branch-misses",
-        "branch-instructions",
-        "L1-dcache-load-misses",
-        "dTLB-load-misses",
-    ]
-)
+_PERF_EVENTS = [
+    "cache-references",
+    "cache-misses",
+    "instructions",
+    "cycles",
+    "branch-misses",
+    "branch-instructions",
+    "L1-dcache-load-misses",
+    "dTLB-load-misses",
+]
+
 
 _STAT_LINE_RE = re.compile(r"^\s+([\d,]+)\s+([a-zA-Z0-9_\-]+)(?::[a-zA-Z]+)?")
 
@@ -58,8 +57,8 @@ class PerfStat(Perf):
 
     name = "perf_stat"
 
-    def __init__(self, *, events: str = _PERF_EVENTS) -> None:
-        self._events = events
+    def __init__(self, *, events: list[str] = _PERF_EVENTS) -> None:
+        self._events = ",".join(events)
         self._proc: subprocess.Popen | None = None
         self._data: dict = {}
 
@@ -158,17 +157,26 @@ class PerfRecord(Perf):
     def start(self, pid: int) -> None:
         logger.debug(
             "attaching perf record to pid %d (event=%s, freq=%d, output=%s)",
-            pid, self._event, self._freq, self._output,
+            pid,
+            self._event,
+            self._freq,
+            self._output,
         )
         try:
             self._proc = subprocess.Popen(
                 [
-                    "perf", "record",
-                    "-p", str(pid),
-                    "-e", self._event,
-                    "--call-graph", self._call_graph,
-                    "-F", str(self._freq),
-                    "-o", str(self._output),
+                    "perf",
+                    "record",
+                    "-p",
+                    str(pid),
+                    "-e",
+                    self._event,
+                    "--call-graph",
+                    self._call_graph,
+                    "-F",
+                    str(self._freq),
+                    "-o",
+                    str(self._output),
                 ],
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.PIPE,
@@ -204,10 +212,14 @@ class PerfRecord(Perf):
             return "(perf.data missing or empty — perf record may have failed)"
         r = subprocess.run(
             [
-                "perf", "report",
-                "-i", str(self._output),
-                "--stdio", "--no-children",
-                "-g", "none",
+                "perf",
+                "report",
+                "-i",
+                str(self._output),
+                "--stdio",
+                "--no-children",
+                "-g",
+                "none",
             ],
             capture_output=True,
             text=True,
