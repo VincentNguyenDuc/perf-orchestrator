@@ -1,12 +1,6 @@
 # perf-orchestrator
 
-Process lifecycle manager with Linux `perf` attachment.
-
-Manages subprocess start/stop and attaches `perf` capabilities (`perf stat`,
-`perf record`, etc.) to the process for the duration of its lifetime. Each
-capability is configured independently and started/stopped with the process.
-Multiple processes can be managed together as a `ProcessGroup`, started in
-order and stopped in reverse.
+Orchestrate `Linux perf` for profiling any arbitrary process or a group of interacting processes.
 
 ## Install
 
@@ -14,8 +8,6 @@ order and stopped in reverse.
 pip install -e .          # basic install
 pip install -e ".[dev]"   # include black + ruff
 ```
-
-Requires Python 3.11+ and Linux `perf`
 
 ## Development
 
