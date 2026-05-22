@@ -29,6 +29,11 @@ class Perf(ABC):
 
 
 _PERF_EVENTS = [
+    # Software events — always available (no PMU required)
+    "task-clock",
+    "page-faults",
+    "context-switches",
+    # Hardware events — may show <not supported> in containers / VMs
     "cache-references",
     "cache-misses",
     "instructions",
@@ -39,8 +44,16 @@ _PERF_EVENTS = [
     "dTLB-load-misses",
 ]
 
-
-_STAT_LINE_RE = re.compile(r"^\s+([\d,]+)\s+([a-zA-Z0-9_\-]+)(?::[a-zA-Z]+)?")
+# Integer counter:  "      1,234,567      cycles:u"
+_STAT_INT_RE = re.compile(
+    r"^\s+([\d,]+)\s+([a-zA-Z][a-zA-Z0-9_\-]*)(?::[a-zA-Z:]+)?"
+)
+# Millisecond float: "      1,234.56 msec task-clock:u"
+# Only matches the explicit "msec" unit to avoid misparising the
+# "N.NNN seconds time elapsed" summary line.
+_STAT_MSEC_RE = re.compile(
+    r"^\s+([\d,]+\.\d+)\s+msec\s+([a-zA-Z][a-zA-Z0-9_\-]*)(?::[a-zA-Z:]+)?"
+)
 
 
 class PerfStat(Perf):
@@ -83,20 +96,25 @@ class PerfStat(Perf):
         except subprocess.TimeoutExpired:
             self._proc.kill()
             _, stderr = self._proc.communicate()
-        self._data = self._parse_perf_stat(stderr.decode(errors="replace"))
+        raw = stderr.decode(errors="replace")
+        logger.debug("perf stat raw output:\n%s", raw)
+        self._data = self._parse_perf_stat(raw)
+        if not self._data:
+            logger.warning("perf stat: no counters parsed (hardware PMU unavailable?)\n%s", raw)
 
     def report(self) -> dict:
         return self._data
 
     def _parse_perf_stat(self, output: str) -> dict:
-        counters: dict[str, int] = {}
+        counters: dict[str, int | float] = {}
         for line in output.splitlines():
-            m = _STAT_LINE_RE.match(line)
+            m = _STAT_INT_RE.match(line) or _STAT_MSEC_RE.match(line)
             if not m:
                 continue
             raw_val, event = m.group(1), m.group(2)
             try:
-                counters[event] = int(raw_val.replace(",", ""))
+                s = raw_val.replace(",", "")
+                counters[event] = float(s) if "." in s else int(s)
             except ValueError:
                 pass
 

@@ -5,7 +5,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from perf_orchestrator.perf import _PERF_EVENTS, PerfStat
+from perf_orchestrator.perf import _PERF_EVENTS, _STAT_INT_RE, _STAT_MSEC_RE, PerfStat
 
 PERF_STAT_OUTPUT = """\
  Performance counter stats for process id '1234':
@@ -190,3 +190,17 @@ class TestPerfStatReport:
         output = "Performance counter stats for process id '1':\n\n" + PERF_STAT_OUTPUT
         counters = _run_stat(output).report()["counters"]
         assert all(isinstance(v, int) for v in counters.values())
+
+    def test_task_clock_parsed_as_float(self):
+        output = "      1,234.56 msec task-clock:u              #    1.234 CPUs utilized\n"
+        counters = _run_stat(output).report()["counters"]
+        assert counters["task-clock"] == pytest.approx(1234.56)
+
+    def test_elapsed_time_line_ignored(self):
+        output = "       1.234567890 seconds time elapsed\n"
+        assert _run_stat(output).report() == {}
+
+    def test_software_events_in_defaults(self):
+        assert "task-clock" in _PERF_EVENTS
+        assert "page-faults" in _PERF_EVENTS
+        assert "context-switches" in _PERF_EVENTS
