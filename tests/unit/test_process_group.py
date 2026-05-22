@@ -1,4 +1,5 @@
 """Unit tests for ProcessGroup."""
+
 from unittest.mock import MagicMock, call, patch
 
 import pytest
@@ -24,13 +25,17 @@ class TestProcessGroupAdd:
     def test_add_returns_process_instance(self):
         from perf_orchestrator import Process
 
-        with patch("perf_orchestrator.process.subprocess.Popen", return_value=_mock_sys_proc()):
+        with patch(
+            "perf_orchestrator.process.subprocess.Popen", return_value=_mock_sys_proc()
+        ):
             with ProcessGroup() as group:
                 result = group.add(["sleep", "10"])
         assert isinstance(result, Process)
 
     def test_add_forwards_name_kwarg(self):
-        with patch("perf_orchestrator.process.subprocess.Popen", return_value=_mock_sys_proc()):
+        with patch(
+            "perf_orchestrator.process.subprocess.Popen", return_value=_mock_sys_proc()
+        ):
             with ProcessGroup() as group:
                 p = group.add(["sleep", "10"], name="my-proc")
         assert p.name == "my-proc"

@@ -1,4 +1,5 @@
 """Unit tests for PerfStat."""
+
 import signal
 import subprocess
 from unittest.mock import MagicMock, patch
@@ -45,7 +46,12 @@ class TestPerfStatStart:
             popen.return_value = MagicMock()
             PerfStat().start(pid=1234)
         assert popen.call_args[0][0] == [
-            "perf", "stat", "-p", "1234", "-e", ",".join(_PERF_EVENTS)
+            "perf",
+            "stat",
+            "-p",
+            "1234",
+            "-e",
+            ",".join(_PERF_EVENTS),
         ]
 
     def test_custom_events_forwarded(self):
@@ -69,7 +75,9 @@ class TestPerfStatStart:
         assert popen.call_args[1]["stderr"] == subprocess.PIPE
 
     def test_perf_not_found_is_graceful(self):
-        with patch("perf_orchestrator.perf.subprocess.Popen", side_effect=FileNotFoundError):
+        with patch(
+            "perf_orchestrator.perf.subprocess.Popen", side_effect=FileNotFoundError
+        ):
             stat = PerfStat()
             stat.start(pid=1234)
         assert stat._proc is None
@@ -112,7 +120,9 @@ class TestPerfStatStop:
         PerfStat().stop()
 
     def test_noop_when_perf_not_found(self):
-        with patch("perf_orchestrator.perf.subprocess.Popen", side_effect=FileNotFoundError):
+        with patch(
+            "perf_orchestrator.perf.subprocess.Popen", side_effect=FileNotFoundError
+        ):
             stat = PerfStat()
             stat.start(pid=1)
         stat.stop()
@@ -123,7 +133,9 @@ class TestPerfStatReport:
         assert PerfStat().report() == {}
 
     def test_empty_when_perf_unavailable(self):
-        with patch("perf_orchestrator.perf.subprocess.Popen", side_effect=FileNotFoundError):
+        with patch(
+            "perf_orchestrator.perf.subprocess.Popen", side_effect=FileNotFoundError
+        ):
             stat = PerfStat()
             stat.start(pid=1)
             stat.stop()
@@ -173,7 +185,9 @@ class TestPerfStatReport:
         assert "cache_miss_rate_pct" not in derived
 
     def test_no_branch_miss_rate_when_total_zero(self):
-        output = "      1,000      branch-misses\n          0      branch-instructions\n"
+        output = (
+            "      1,000      branch-misses\n          0      branch-instructions\n"
+        )
         derived = _run_stat(output).report().get("derived", {})
         assert "branch_miss_rate_pct" not in derived
 
@@ -192,7 +206,9 @@ class TestPerfStatReport:
         assert all(isinstance(v, int) for v in counters.values())
 
     def test_task_clock_parsed_as_float(self):
-        output = "      1,234.56 msec task-clock:u              #    1.234 CPUs utilized\n"
+        output = (
+            "      1,234.56 msec task-clock:u              #    1.234 CPUs utilized\n"
+        )
         counters = _run_stat(output).report()["counters"]
         assert counters["task-clock"] == pytest.approx(1234.56)
 

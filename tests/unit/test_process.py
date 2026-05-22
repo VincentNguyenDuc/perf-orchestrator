@@ -1,4 +1,5 @@
 """Unit tests for Process."""
+
 import signal
 import subprocess
 from unittest.mock import MagicMock, call, patch
@@ -28,7 +29,9 @@ def _mock_perf(name: str = "mock_perf") -> MagicMock:
 def mock_popen():
     """Patch subprocess.Popen in process module; yield (popen_mock, proc_mock)."""
     sys_proc = _mock_sys_proc()
-    with patch("perf_orchestrator.process.subprocess.Popen", return_value=sys_proc) as popen:
+    with patch(
+        "perf_orchestrator.process.subprocess.Popen", return_value=sys_proc
+    ) as popen:
         yield popen, sys_proc
 
 
@@ -191,7 +194,10 @@ class TestProcessReport:
         proc.start()
         proc.stop()
         result = proc.report()
-        assert result == {"perf_stat": {"counters": {}}, "perf_record": {"report": "hot path"}}
+        assert result == {
+            "perf_stat": {"counters": {}},
+            "perf_record": {"report": "hot path"},
+        }
 
     def test_empty_report_with_no_perf(self, mock_popen):
         proc = Process(["sleep", "10"])

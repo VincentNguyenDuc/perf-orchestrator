@@ -1,4 +1,5 @@
 """Unit tests for PerfRecord."""
+
 import signal
 import subprocess
 from pathlib import Path
@@ -38,12 +39,18 @@ class TestPerfRecordStart:
             PerfRecord(output).start(pid=1234)
         cmd = popen.call_args[0][0]
         assert cmd == [
-            "perf", "record",
-            "-p", "1234",
-            "-e", "cpu-clock",
-            "--call-graph", "dwarf",
-            "-F", "99",
-            "-o", str(output),
+            "perf",
+            "record",
+            "-p",
+            "1234",
+            "-e",
+            "cpu-clock",
+            "--call-graph",
+            "dwarf",
+            "-F",
+            "99",
+            "-o",
+            str(output),
         ]
 
     def test_custom_event(self, tmp_path):
@@ -77,7 +84,9 @@ class TestPerfRecordStart:
         assert popen.call_args[1]["stderr"] == subprocess.PIPE
 
     def test_perf_not_found_is_graceful(self, tmp_path):
-        with patch("perf_orchestrator.perf.subprocess.Popen", side_effect=FileNotFoundError):
+        with patch(
+            "perf_orchestrator.perf.subprocess.Popen", side_effect=FileNotFoundError
+        ):
             rec = PerfRecord(tmp_path / "perf.data")
             rec.start(pid=1234)
         assert rec._proc is None
@@ -136,7 +145,9 @@ class TestPerfRecordStop:
         PerfRecord(tmp_path / "perf.data").stop()
 
     def test_noop_when_perf_not_found(self, tmp_path):
-        with patch("perf_orchestrator.perf.subprocess.Popen", side_effect=FileNotFoundError):
+        with patch(
+            "perf_orchestrator.perf.subprocess.Popen", side_effect=FileNotFoundError
+        ):
             rec = PerfRecord(tmp_path / "perf.data")
             rec.start(pid=1)
         rec.stop()
@@ -162,7 +173,9 @@ class TestPerfRecordReport:
         mock_result.returncode = 0
         mock_result.stdout = PERF_REPORT_OUTPUT
         mock_result.stderr = ""
-        with patch("perf_orchestrator.perf.subprocess.run", return_value=mock_result) as run:
+        with patch(
+            "perf_orchestrator.perf.subprocess.run", return_value=mock_result
+        ) as run:
             rec = PerfRecord(perf_data)
             rec.report()
         cmd = run.call_args[0][0]
@@ -210,7 +223,9 @@ class TestPerfRecordReport:
         mock_result.returncode = 0
         mock_result.stdout = PERF_REPORT_OUTPUT
         mock_result.stderr = ""
-        with patch("perf_orchestrator.perf.subprocess.run", return_value=mock_result) as run:
+        with patch(
+            "perf_orchestrator.perf.subprocess.run", return_value=mock_result
+        ) as run:
             rec = PerfRecord(perf_data)
             rec.report()
             rec.report()
@@ -227,7 +242,9 @@ class TestPerfRecordReport:
         assert result["stderr"] == "perf: some warning"
 
     def test_placeholder_when_perf_unavailable(self, tmp_path):
-        with patch("perf_orchestrator.perf.subprocess.Popen", side_effect=FileNotFoundError):
+        with patch(
+            "perf_orchestrator.perf.subprocess.Popen", side_effect=FileNotFoundError
+        ):
             rec = PerfRecord(tmp_path / "perf.data")
             rec.start(pid=1)
             rec.stop()

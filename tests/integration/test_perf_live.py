@@ -4,6 +4,7 @@ Skipped automatically on non-Linux systems or when perf is not in PATH.
 These tests verify the full perf stat / perf record pipeline against a
 real subprocess.
 """
+
 import shutil
 import sys
 import time

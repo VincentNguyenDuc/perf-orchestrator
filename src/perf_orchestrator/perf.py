@@ -45,9 +45,7 @@ _PERF_EVENTS = [
 ]
 
 # Integer counter:  "      1,234,567      cycles:u"
-_STAT_INT_RE = re.compile(
-    r"^\s+([\d,]+)\s+([a-zA-Z][a-zA-Z0-9_\-]*)(?::[a-zA-Z:]+)?"
-)
+_STAT_INT_RE = re.compile(r"^\s+([\d,]+)\s+([a-zA-Z][a-zA-Z0-9_\-]*)(?::[a-zA-Z:]+)?")
 # Millisecond float: "      1,234.56 msec task-clock:u"
 # Only matches the explicit "msec" unit to avoid misparising the
 # "N.NNN seconds time elapsed" summary line.
@@ -100,7 +98,9 @@ class PerfStat(Perf):
         logger.debug("perf stat raw output:\n%s", raw)
         self._data = self._parse_perf_stat(raw)
         if not self._data:
-            logger.warning("perf stat: no counters parsed (hardware PMU unavailable?)\n%s", raw)
+            logger.warning(
+                "perf stat: no counters parsed (hardware PMU unavailable?)\n%s", raw
+            )
 
     def report(self) -> dict:
         return self._data

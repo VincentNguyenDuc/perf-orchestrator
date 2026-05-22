@@ -3,6 +3,7 @@
 These tests use real OS processes (sleep, python3) and do not require
 Linux perf. They verify lifecycle, signaling, and ready-function behavior.
 """
+
 import socket
 import time
 
